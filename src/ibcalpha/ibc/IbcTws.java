@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -153,40 +153,40 @@ import java.util.concurrent.TimeUnit;
  *                                          is 'no', requiring the user to manually confirm each trade.
  *                                 46       Fixed the NewerVersionDialogHandler: the text to be searched for (in current TWS versions)
  *                                          is contained in a JOptionPane, not a JLabel.
- *  20131218 Richard King          47       Modified the AcceptIncomingConnectionDialogHandler to not check the contents of the 
+ *  20131218 Richard King          47       Modified the AcceptIncomingConnectionDialogHandler to not check the contents of the
  *                                          title bar, since this varies with different versions of TWS and is not necessary
  *                                          to successfully identify the dialog.
  *                                 48       Added an AcceptIncomingConnectionAction setting. If set to 'accept', IBController
  *                                          automatically accepts the incoming connection request. If set to 'reject', IBController
  *                                          automatically rejects the incoming connection request. If set to 'manual', IBController
- *                                          does nothing and the user must decide whether to accept or reject the incoming connection 
+ *                                          does nothing and the user must decide whether to accept or reject the incoming connection
  *                                          request. The default is 'accept'.
  *                                 49       Improved handling of the Exit Session Setting dialog. In TWS 942, the caption is only included
  *                                          the first time the dialog is displayed. However TWS always displays the same instance
  *                                          of the dialog, so a reference to the dialog is stored the first time it is displayed, and
  *                                          is used to detect subsequent displays.
- *                                 50       Added a ShowAllTrades setting. If this is set to yes, IBController causes TWS to display the 
+ *                                 50       Added a ShowAllTrades setting. If this is set to yes, IBController causes TWS to display the
  *                                          Trades log at startup, and sets the 'All' checkbox to ensure that the API reports all executions
- *                                          that have occurred during the past week. Moreover, any attempt by the user to change any of the 
- *                                          'Show trades' checkboxes is ignored; similarly if the user closes the Trades log, it is 
+ *                                          that have occurred during the past week. Moreover, any attempt by the user to change any of the
+ *                                          'Show trades' checkboxes is ignored; similarly if the user closes the Trades log, it is
  *                                          immediately re-displayed with the 'All' checkbox set. If set to 'no', IBController does not
  *                                          interact with the Trades log. The default is no.
  *                                 51       Added RECONNECTACCOUNT and RECONNECTDATA commands. RECONNECTACCOUNT causes TWS to disconnect from
- *                                          the IB account server and then reconnect (the same as the user pressing Ctrl-Alt-R). 
- *                                          RECONNECTDATA causes TWS to disconnect from all market data farms and then reconnect (the same 
+ *                                          the IB account server and then reconnect (the same as the user pressing Ctrl-Alt-R).
+ *                                          RECONNECTDATA causes TWS to disconnect from all market data farms and then reconnect (the same
  *                                          as the user pressing Ctrl-Alt-F). Thanks to Cheung Kwok Fai for suggesting this and supplying the
  *                                          relevant code edits.
- *                                 52       Added an ExistingSessionDetectedAction setting. When TWS logs on it checks to see whether the 
+ *                                 52       Added an ExistingSessionDetectedAction setting. When TWS logs on it checks to see whether the
  *                                          account is already logged in. If so it displays a dialog: this setting instructs TWS how to proceed. If set
  *                                          to 'primary', TWS ends the other session and continues with the new session. If set to
- *                                          'secondary', TWS exits so that the other session is unaffected. If set to 'manual', the user must 
+ *                                          'secondary', TWS exits so that the other session is unaffected. If set to 'manual', the user must
  *                                          handle the dialog. The default is 'manual'.
  *                                 53       Change # 45 above has been removed because firstly, it was not correctly implemented, and
  *                                          secondly current versions of TWS enable the user to instruct TWS not to show the order
  *                                          confirmation dialog. The legal restrictions that resulted in one-click trading via the BookTrader
  *                                          being removed in TWS906 appear to have been lifted.
  *                                 54       Added a LogToConsole setting. If set to 'yes', all logging output from IBController is to the console
- *                                          and may be directed into a file using the normal > or >> command line redirection operators. If set to 'no', 
+ *                                          and may be directed into a file using the normal > or >> command line redirection operators. If set to 'no',
  *                                          output from IBController that is logged after it has loaded TWS appears in the TWS logfile. The default is 'no'.
  *  20140228 Richard King          55       Added the ability to run the FIX CTCI gateway. There are these new settings:
  *                                                  FIX                     if yes, use the FIX CTCI login, otherwise the IB API gateway login (default no)
@@ -198,10 +198,10 @@ import java.util.concurrent.TimeUnit;
  *                                          The FIX username and password may also be supplied as the second and third command line args. In
  *                                          this case, the market data connection username and password may be supplied as the fourth and
  *                                          fifth command line args.
- * 
- * With the move to Github, the value of recording details of amendments here is questionable, and this practice has therefore been 
+ *
+ * With the move to Github, the value of recording details of amendments here is questionable, and this practice has therefore been
  * discontinued.
- * 
+ *
  */
 
 public class IbcTws {
@@ -228,29 +228,29 @@ public class IbcTws {
     static void checkArguments(String[] args) {
         /**
          * Allowable parameter combinations:
-         * 
+         *
          * 1. No parameters
-         * 
+         *
          * 2. <iniFile> [<tradingMode>]
-         * 
+         *
          * 3. <iniFile> <apiUserName> <apiPassword> [<tradingMode>]
-         * 
+         *
          * 4. <iniFile> <fixUserName> <fixPassword> <apiUserName> <apiPassword> [<tradingMode>]
-         * 
+         *
          * where:
-         * 
-         *      <iniFile>       ::= NULL | path-and-filename-of-.ini-file 
-         * 
+         *
+         *      <iniFile>       ::= NULL | path-and-filename-of-.ini-file
+         *
          *      <tradingMode>   ::= blank | LIVETRADING | PAPERTRADING
-         * 
+         *
          *      <apiUserName>   ::= blank | username-for-TWS
-         * 
+         *
          *      <apiPassword>   ::= blank | password-for-TWS
-         * 
+         *
          *      <fixUserName>   ::= blank | username-for-FIX-CTCI-Gateway
-         * 
+         *
          *      <fixPassword>   ::= blank | password-for-FIX-CTCI-Gateway
-         * 
+         *
          */
         if (args.length > 6) {
             Utils.logError("Incorrect number of arguments passed. quitting...");
@@ -326,7 +326,7 @@ public class IbcTws {
         // because both contain an "Enter Read Only" button
         windowHandlers.add(SecondFactorAuthenticationDialogHandler.getInstance());
         windowHandlers.add(new SecurityCodeDialogHandler());
-        
+
         windowHandlers.add(new ReloginDialogHandler());
         windowHandlers.add(new NonBrokerageAccountDialogHandler());
         windowHandlers.add(new ExitConfirmationDialogHandler());
@@ -339,7 +339,7 @@ public class IbcTws {
         windowHandlers.add(new CryptoOrderConfirmationDialogHandler());
         windowHandlers.add(new AutoRestartConfirmationDialog());
         windowHandlers.add(new RestartConfirmationDialogHandler());
-        
+
         return windowHandlers;
     }
 
@@ -384,7 +384,7 @@ public class IbcTws {
                     }
                 }
             } catch (ParseException e) {
-                Utils.exitWithError(ErrorCodes.ERROR_CODE_INVALID_CLOSEDOWN_AT_SETTING, 
+                Utils.exitWithError(ErrorCodes.ERROR_CODE_INVALID_CLOSEDOWN_AT_SETTING,
                                     "Invalid ClosedownAt setting: '" + shutdownTimeSetting + "'; format should be: <[day ]hh:mm>   eg 22:00 or Friday 22:00");
             }
             return cal.getTime();
@@ -400,7 +400,7 @@ public class IbcTws {
         try {
             Files.createDirectories(Paths.get(path));
         } catch (FileAlreadyExistsException ex) {
-            Utils.exitWithError(ErrorCodes.ERROR_CODE_CANT_CREATE_TWS_SETTINGS_DIRECTORY, 
+            Utils.exitWithError(ErrorCodes.ERROR_CODE_CANT_CREATE_TWS_SETTINGS_DIRECTORY,
                                 "Failed to create TWS settings directory at: " + path + "; a file of that name already exists");
         } catch (IOException ex) {
             Utils.exitWithException(ErrorCodes.ERROR_CODE_CANT_CREATE_TWS_SETTINGS_DIRECTORY, ex);
@@ -417,7 +417,7 @@ public class IbcTws {
             String props = (String) i.nextElement();
             String vals = (String) p.get(props);
             if (props.equals("sun.java.command")) {
-                //hide credentials 
+                //hide credentials
                 String[] args = vals.split(" ");
                 for (int j = 2; j < args.length - 1; j++) {
                     args[j] = "***";
@@ -497,7 +497,7 @@ public class IbcTws {
         if (!sendMarketDataInLots.equals("")) {
             (new ConfigurationTask(new ConfigureSendMarketDataInLotsForUSstocksTask(Settings.settings().getBoolean("SendMarketDataInLotsForUSstocks", true)))).executeAsync();
         }
-        
+
         String autoLogoffTime = Settings.settings().getString("AutoLogoffTime", "");
         String autoRestartTime = Settings.settings().getString("AutoRestartTime", "");
         if (autoRestartTime.length() != 0) {
@@ -507,6 +507,10 @@ public class IbcTws {
             }
         } else if (autoLogoffTime.length() != 0) {
             (new ConfigurationTask(new ConfigureAutoLogoffOrRestartTimeTask("Auto logoff", autoLogoffTime))).executeAsync();
+        }
+
+        if (!Settings.settings().getString("BypassOrderPrecautions", "").equals("")) {
+            (new ConfigurationTask(new ConfigureBypassOrderPrecautionsTask(Settings.settings().getBoolean("BypassOrderPrecautions",true)))).executeAsync();
         }
 
         Utils.sendConsoleOutputToTwsLog(!Settings.settings().getBoolean("LogToConsole", false));
